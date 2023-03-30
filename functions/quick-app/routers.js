@@ -1,25 +1,24 @@
 const catalyst = require('zcatalyst-sdk-node');
 const formidable = require('formidable');
-const form = formidable({ multiples: true, keepExtensions: true });
+const form = formidable({ multiples: false, keepExtensions: true });
 const { parseYaml } = require('./yamlParser')
-const { createRandomUser, createRandomAddress } = require('./fakerFuncs');
+//const { createRandomUser, createRandomAddress } = require('./fakerFuncs');
 
 module.exports = (router) => {
   router.post('/create-schema', (req, res) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, async (err, fields, files) => {
       if (err) {
         console.log(err);
-        res.status(500).send("error parsing arguments.");
+        res.status(500).send("error parsing arguments");
         return;
       }
 
-      const yamlFile = files.yaml;
+      let file = files.yaml.filepath;
 
       try {
-        const parsedFile = parseYaml(yamlFile);
-        res.send(parsedFile);
-      }
-      catch (err) {
+        let contents = await parseYaml(file);
+        res.send(contents);
+      } catch (err) {
         console.error(err);
         res.status(500).send("error parsing file");
       }

@@ -1,21 +1,15 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 
-exports.parseYaml = (file) => {
-  const stream = fs.createReadStream(file.filepath);
+exports.parseYaml = async (file) => {
+  let stream = fs.createReadStream(file);
 
-  stream.on("data", (data) => {
-    try {
-      return yaml.load(data);
-    }
-    catch (err) {
-      console.error(err);
-      throw err;
-    }
-  });
+  return new Promise((resolve, reject) => {
+    stream.on("data", async (data) => {
+      let contents = yaml.load(data);
+      resolve(contents);
+    });
 
-  stream.on("error", (err) => {
-    console.error(err);
-    throw err;
+    stream.on("error", reject);
   });
 };
