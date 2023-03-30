@@ -5,9 +5,5 @@
     ],
     "ignore": [],
     "source": "functions"
-  },
-  "client": {
-    "source": "quick-app-react",
-    "plugin": "zcatalyst-cli-plugin-react"
   }
 }
