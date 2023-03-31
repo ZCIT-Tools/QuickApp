@@ -13,3 +13,7 @@ exports.createRandomUser = async () => {
         sex
     }
 }
+
+exports.createRandomAddress = async () => {
+
+}

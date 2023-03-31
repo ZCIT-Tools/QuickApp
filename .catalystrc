@@ -10,17 +10,17 @@
   "projects": [
     {
       "idx": 1,
-      "id": "15574000000062068",
+      "id": "1074000000037015",
       "name": "QuickApp",
       "domain": {
-        "id": "10055160972",
-        "name": "quickapp-800885668.development"
+        "id": "10055507561",
+        "name": "quickapp-786816123.development"
       },
-      "timezone": "GMT",
+      "timezone": "US/Central",
       "env": [
         {
           "idx": 1,
-          "id": "800885668",
+          "id": "786816123",
           "name": "Development",
           "type": 3
         }

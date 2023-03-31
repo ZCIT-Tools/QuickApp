@@ -1,11 +1,10 @@
 const catalyst = require('zcatalyst-sdk-node');
 const formidable = require('formidable');
-const form = formidable({ multiples: false, keepExtensions: true });
+const form = formidable({ multiples: false, keepExtensions: false });
 const { parseYaml } = require('./yamlParser')
-//const { createRandomUser, createRandomAddress } = require('./fakerFuncs');
 
 module.exports = (router) => {
-  router.post('/create-schema', (req, res) => {
+  router.post('/create-schema', async (req, res) => {
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.log(err);
