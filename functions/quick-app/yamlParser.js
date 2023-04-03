@@ -14,20 +14,21 @@ exports.parseYaml = async (file) => {
       let contents = await yaml.load(data);
       let forms = contents.Forms;
 
-      const xlsx = require('exceljs');
-      const forms = {"forms": { "department": { "name": "string",
-                                                 "code": "string" },
-                                "role": { "name": "string",
-                                          "description": "string" },
-                                "person": { "name": "name",
-                                            "email": "email",
-                                            "address": "address",
-                                            "department": "department",
-                                            "role": "role" }
-                              }
-                    }.forms;
-
-      const workbook = new xlsx.Workbook();
+      ////////////////////////////////////////////////////////////////////
+      // const xlsx = require('exceljs');
+      // const forms = {"forms": { "department": { "name": "string",
+      //                                            "code": "string" },
+      //                           "role": { "name": "string",
+      //                                     "description": "string" },
+      //                           "person": { "name": "name",
+      //                                       "email": "email",
+      //                                       "address": "address",
+      //                                       "department": "department",
+      //                                       "role": "role" }
+      //                         }
+      //               }.forms;
+      // const workbook = new xlsx.Workbook();
+      ////////////////////////////////////////////////////////////////////
 
       Object.keys(forms).forEach((form) => {
         let worksheet = workbook.addWorksheet(form);
