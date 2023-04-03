@@ -12,25 +12,9 @@ exports.parseYaml = async (file) => {
   return new Promise((resolve, reject) => {
     stream.on("data", async (data) => {
       let contents = await yaml.load(data);
-      let forms = contents.Forms;
+      let sheetMap = {};
 
-      ////////////////////////////////////////////////////////////////////
-      // const xlsx = require('exceljs');
-      // const forms = {"forms": { "department": { "name": "string",
-      //                                            "code": "string" },
-      //                           "role": { "name": "string",
-      //                                     "description": "string" },
-      //                           "person": { "name": "name",
-      //                                       "email": "email",
-      //                                       "address": "address",
-      //                                       "department": "department",
-      //                                       "role": "role" }
-      //                         }
-      //               }.forms;
-      // const workbook = new xlsx.Workbook();
-      ////////////////////////////////////////////////////////////////////
-
-      Object.keys(forms).forEach((form) => {
+      Object.keys(contents).forEach((form) => {
         let worksheet = workbook.addWorksheet(form);
         let headers = Object.keys(forms[form]).reduce((acc, field) => {
           if (forms[form][field].toLowerCase() === 'name') {
@@ -55,8 +39,9 @@ exports.parseYaml = async (file) => {
           acc[header] = header;
           return acc;
         }, {})).commit();
-      });
 
+        contents.Entries.forEach();
+      });
       workbook.xlsx.writeFile('./file.xlsx');
 
       resolve(workbook);
