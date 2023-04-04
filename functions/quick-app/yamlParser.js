@@ -1,49 +1,52 @@
 const yaml = require('js-yaml');
-const fs = require('fs');
-const xlsx = require('exceljs');
-const { createRandomUser, createRandomAddress } = require('./fakerFuncs');
+let fs = require('fs');
+let excel = require('exceljs');
+let { createRandomUser, createRandomAddress } = require('./fakerFuncs');
 
 exports.parseYaml = async (file) => {
-  const stream = fs.createReadStream(file);
-  const workbook = new xlsx.Workbook();
-  workbook.creator = 'QuickApp';
-  workbook.created = new Date();
-
   return new Promise((resolve, reject) => {
+    let stream = fs.createReadStream(file);
+    let workbook = new excel.Workbook();
+
     stream.on("data", async (data) => {
       let contents = await yaml.load(data);
-      let sheetMap = {};
-
       Object.keys(contents).forEach((form) => {
         let worksheet = workbook.addWorksheet(form);
+        let col = 1;
         let headers = Object.keys(forms[form]).reduce((acc, field) => {
-          if (forms[form][field].toLowerCase() === 'name') {
+          if (form.toLowerCase() === '_name') {
             acc.push('first_name');
             acc.push('last_name');
-          } else if (forms[form][field].toLowerCase() === 'address') {
+          } else if (form.toLowerCase() === '_address') {
             acc.push('address_1');
             acc.push('address_2');
             acc.push('state');
             acc.push('zipcode');
           } else {
             acc.push(field.toLowerCase());
+            let val = forms[form][field];
+            if (val.charAt(0) === '^') {
+              let count = Number(val.slice(1, val.length - 1));
+              if (form.val)
+
+            }
+            else {
+              worksheet.addColumn(col, forms[form][field].split('__'));
+            }
           }
           return acc;
         }, []);
 
-        worksheet.columns = headers.map((header) => {
-          return { header: header, id: header };
-        });
+        // worksheet.columns = headers.map((header) => {
+        //   return { header: header, id: header };
+        // });
 
-        worksheet.addRow(1, headers.reduce((acc, header) => {
-          acc[header] = header;
-          return acc;
-        }, {})).commit();
+        // worksheet.addRow(1, headers.reduce((acc, header) => {
+        //   acc[header] = header;
+        //   return acc;
+        // }, {})).commit();
 
-        contents.Entries.forEach();
       });
-      workbook.xlsx.writeFile('./file.xlsx');
-
       resolve(workbook);
     });
     stream.on("error", reject);

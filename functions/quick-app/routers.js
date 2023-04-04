@@ -15,8 +15,12 @@ module.exports = (router) => {
       let file = files.yaml.filepath;
 
       try {
-        let contents = await parseYaml(file);
-        res.send(contents);
+        let result = await parseYaml(file);
+        let filename = files.yaml.originalFilename.replace(/\.[^/.]+$/, "") + '.xlsx';
+        res.setHeader('Content-Disposition',
+                      `attachment; filename=${filename}`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        await result.xlsx.write(res);
       } catch (err) {
         console.error(err);
         res.status(500).send("error parsing file");
