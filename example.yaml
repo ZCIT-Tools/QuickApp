@@ -1,0 +1,13 @@
+Department:
+  Name: CRM__Creator__Analytics
+  Code: CRM__C6__REPORTS
+  Description: Zoho CRM__Creator 6__Analytics
+Role:
+  Name: Product Manager__Sales__Presales__Support
+  Description: Product Manager__Sales__Presales__Support
+Person:
+  _Name: ^9
+  Email: ^9
+  _Address: ^9
+  Department: Department.Code
+  Role: Role.Name
