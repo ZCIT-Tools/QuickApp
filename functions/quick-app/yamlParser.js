@@ -7,24 +7,27 @@ const range = (n) => {
   return Array.from(Array(n).keys());
 }
 
-createRandomUser = async () => {
-    const sex = faker.name.sexType();
-    const firstName = faker.name.firstName(sex);
-    const lastName = faker.name.lastName();
-    const countryCode = 'US';
-    const state = faker.address.cityByState();
-    return {
-        avatar: faker.image.avatar(),
-        birthday: faker.date.birthdate(),
-        email: faker.internet.email(firstName, lastName),
-        firstName,
-        lastName,
-        sex,
-        street: faker.address.streetAddress(),
-        city: faker.address.cityName(),
-        state: faker.address.stateAbbr(),
-        zipCode: faker.address.zipCodeByState(state),
-    }
+const contains = (arr, target) => {
+  return arr.reduce((acc, value) => { return acc || (target === value); }, false);
+}
+
+const createRandomUser = async () => {
+  const sex = faker.name.sexType();
+  const firstName = faker.name.firstName(sex);
+  const lastName = faker.name.lastName();
+  const state = faker.address.cityByState();
+  return {
+    avatar: faker.image.avatar(),
+    birthday: faker.date.birthdate(),
+    email: faker.internet.email(firstName, lastName),
+    firstName,
+    lastName,
+    sex,
+    street: faker.address.streetAddress(),
+    city: faker.address.cityName(),
+    state: faker.address.stateAbbr(),
+    zipCode: faker.address.zipCodeByState(state),
+  }
 }
 
 exports.parseYaml = async (file) => {
@@ -34,70 +37,69 @@ exports.parseYaml = async (file) => {
 
     stream.on("data", async (data) => {
       let contents = await yaml.load(data);
-      Object.keys(contents).forEach((form) => {
+      const forms = Object.keys(contents);
+      // Generate sheets and headers
+      forms.forEach((form) => {
         let worksheet = workbook.addWorksheet(form);
-        let col = 1;
-        let count = 0;
-        let firstMock = true;
-        let mockUsersData;
-
-        let headers = Object.keys(forms[form]).reduce((acc, field) => {
+        let fields = Object.keys(contents[form]);
+        // Ideally fields would be enough but Name and Address fields are composite
+        let headers = fields.reduce((acc, field) => {
           if (form.toLowerCase() === '_name') {
             acc.push('first_name');
             acc.push('last_name');
-          } else if (form.toLowerCase() === '_address') {
+          }
+          if (form.toLowerCase() === '_address') {
             acc.push('address_1');
             acc.push('address_2');
             acc.push('state');
             acc.push('zipcode');
-          } else {
-            acc.push(field.toLowerCase());
-            let val = forms[form][field];
-            if (val.charAt(0) === '^') {
-              if (firstMock) {
-                // No need to do this for subsequent fakes
-                count = Number(val.slice(1, val.length - 1));
-                firstMock = false;
-                mockUsersData = range(count).map(() => {
-                  return createRandomUser();
-                });
-              }
-              if (form.toLowerCase() === '_name') {
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.firstName;
-                }));
-                col++;
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.lastName;
-                }));
-                col++;
-              }
-              if (form.toLowerCase() === '_address') {
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.street;
-                }));
-                col++;
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.city;
-                }));
-                col++;
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.state;
-                }));
-                col++;
-                worksheet.addColumn(col, mockUsersData.map((user) => {
-                  return user.zipCode;
-                }));
-                col++;
-              }
-            }
-            else {
-              worksheet.addColumn(col, forms[form][field].split('__'));
-            }
+            acc.push('country');
           }
-          return acc;
+          else {
+            acc.push(field.toLowerCase());
+          }
         }, []);
-        col = 0;
+        // Set column keys
+        worksheet.columns = headers.map((h) => {
+          return { header: h, key: h };
+        }).commit();
+      });
+
+      // Generate data
+      workbook.eachSheet((sheet) => {
+        let form = sheet.name;
+        let fields = sheet.columns.map((col) => { return col._key; });
+        fields.forEach((field) => {
+          let col = 2;
+
+          // Ugly hack
+          // The headers are replaced by first_name, last_name, address_1... etc
+          // since the Name and Address fields are composite.
+          // These have to be set back for to access the contents of the  yaml file
+          if (field === 'first_name' || field === 'last_name') {
+            field = '_Name';
+          }
+          if (contains(['address_1', 'address_2', 'city', 'state', 'zipcode'], field) {
+            field = '_Address';
+          }
+
+          let vals = contents[form][field];
+          if (vals.charAt(0) === '^') {
+            let count = Number(vals.slice(1, vals.length));
+
+            range(count).forEach(() => {
+              let row = sheet.getRow(col);
+              row.getCell(field).value = val;
+            });
+          }
+          else {
+            vals.split("__").forEach((val) => {
+              let row = sheet.getRow(col);
+              row.getCell(field).value = val;
+              col++;
+            });
+          }
+        });
       });
       resolve(workbook);
     });
