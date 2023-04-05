@@ -71,25 +71,24 @@ exports.parseYaml = async (file) => {
         let fields = sheet.columns.map((col) => { return col._key; });
         fields.forEach((field) => {
           let col = 2;
-
-          // Ugly hack
-          // The headers are replaced by first_name, last_name, address_1... etc
-          // since the Name and Address fields are composite.
-          // These have to be set back for to access the contents of the  yaml file
+          // Ugly hack because composite fields; may refactor later
           if (field === 'first_name' || field === 'last_name') {
-            field = '_Name';
+            let oldField = '_Name';
           }
-          if (contains(['address_1', 'address_2', 'city', 'state', 'zipcode'], field) {
-            field = '_Address';
+          if (contains(['address_1', 'address_2', 'city', 'state', 'zipcode'], field)) {
+            let oldField = '_Address';
           }
 
-          let vals = contents[form][field];
-          if (vals.charAt(0) === '^') {
+          let vals = contents[form][oldField];
+          if (vals.charAt(0) === '^'
+              && sheet.getRow(2).getCell(field).value === null) {
             let count = Number(vals.slice(1, vals.length));
+            let randomUsers = range(count).map(() => {
+              return createRandomUser();
+            });
 
-            range(count).forEach(() => {
-              let row = sheet.getRow(col);
-              row.getCell(field).value = val;
+            randomUsers.forEach((user) => {
+              sheet.insertRow(2, user);
             });
           }
           else {
