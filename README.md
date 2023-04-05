@@ -1,2 +1,0 @@
-# QuickApp
-QuicApp Catalyst app
