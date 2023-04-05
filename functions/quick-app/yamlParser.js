@@ -19,7 +19,7 @@ const createRandomUser = () => {
   return {
     avatar: faker.image.avatar(),
     birthday: faker.date.birthdate(),
-    email: faker.internet.email(firstName, lastName),
+    email: faker.internet.email(firstName, lastName, 'zylker.com'),
     first_name: firstName,
     last_name: lastName,
     sex: sex,
@@ -56,7 +56,7 @@ exports.parseYaml = async (file) => {
             acc.push('last_name');
           }
           // handle composite address field
-          if (field.toLowerCase() === '_address') {
+          if (wsField === '_address') {
             vals[wsName]['address'] = contents[form][field];
             acc.push('address_1');
             acc.push('address_2');
@@ -65,7 +65,7 @@ exports.parseYaml = async (file) => {
             acc.push('zipcode');
             acc.push('country');
           }
-          else {
+          if (wsField.charAt(0) !== '_'){
             // note headers are lowercased
             vals[wsName][wsField] = contents[form][field];
             acc.push(wsField);
@@ -85,6 +85,8 @@ exports.parseYaml = async (file) => {
           return col._key;
         });
 
+        let count;
+        let randSeen = false;
         fields.forEach((field) => {
           let col = 2;
           // slightly inefficient but needed to ref vals in yaml
@@ -96,23 +98,48 @@ exports.parseYaml = async (file) => {
           if (contains(['address_1', 'address_2', 'city', 'state', 'zipcode', 'country'], field)) {
             oldField = 'address';
           }
-
           let val = vals[form][oldField];
-          if (val.slice(0,1) === '^' && ws.getRow(2).getCell(field).value === null) {
-            let count = Number(val.slice(1, val.length));
+
+          // handle rand
+          let valPrefix = val.slice(0,1);
+          if (valPrefix === '^') {
+            if (randSeen) {
+              return;
+            }
+            count = Number(val.slice(1, val.length));
             let randomUsers = range(count).map(() => {
               return createRandomUser();
             });
             randomUsers.forEach((user) => {
               ws.insertRow(2, user); // can insert user data in parallel
             });
+            randSeen = true;
+            return;
           }
-          else {
-            val.split("__").forEach((v) => {
+
+          // handle entries
+          let entries = val.split("__");
+          if (entries.length > 1) {
+            entries.forEach((entry) => {
               let row = ws.getRow(col);
-              row.getCell(field).value = v;
+              row.getCell(field).value = entry;
               col++;
             });
+            return;
+          }
+
+          // handle lookups
+          let lookups = val.split(".").map((x) => { return x.toLowerCase(); });
+          if (lookups.length > 1) {
+            let lookupVals = wb.getWorksheet(lookups[0]).getColumn(lookups[1]).values;
+            lookupVals = lookupVals.slice(2,lookupVals.length);
+            range(count).forEach(() => {
+              let row = ws.getRow(col);
+              let randLookup = faker.helpers.arrayElement(lookupVals);
+              row.getCell(field).value = randLookup;
+              col++;
+            });
+            return;
           }
         });
       });
